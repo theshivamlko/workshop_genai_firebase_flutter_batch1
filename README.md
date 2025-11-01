@@ -1,4 +1,4 @@
-# Workshop Genai Firebase Flutter Batch1
+# Workshop Genai Firebase Flutter Batch 1
 
 Text Summarizer App
 
