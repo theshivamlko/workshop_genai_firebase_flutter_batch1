@@ -13,7 +13,8 @@ class GeminiAiServices {
         Act as helpful assistant perform and Follow the instructions give by user strictly.
 
       Analyze if tool is required and Use the following tools or list of tools if needed:
-      1. googleSearch: Search content online via Google Search.
+      
+      1. googleSearch: TO search content on Web
       
       If no tool required treat normal text response.
       If tools is triggered the combine result of user query along with result return from tools
@@ -25,16 +26,16 @@ class GeminiAiServices {
     String prompt,
     String userQuery, {
     Uint8List? fileAsBytes,
+        List<String>? chatHistory
   }) async {
     try {
       final GenerativeModel _model = FirebaseAI.googleAI().generativeModel(
-        model: modalName,systemInstruction: Content.system(_systemInstruction),
+        model: modalName,
+        systemInstruction: Content.system(_systemInstruction),
         generationConfig: GenerationConfig(
           responseModalities: [ResponseModalities.text],
-
         ),
         tools: [
-
           Tool.googleSearch()
         ],
       );
@@ -46,13 +47,25 @@ class GeminiAiServices {
         inlineDataPart = InlineDataPart("text/plain", fileAsBytes);
       }
 
+
+
+      List<TextPart> history=[];
+
+      for (var message in chatHistory ?? []) {
+        final textPart = TextPart(message);
+        history.add(textPart);
+      }
+
       final content = [
         Content.multi([
           textPrompt,
           userPrompt,
           if (inlineDataPart != null) inlineDataPart,
+          ...history
         ]),
       ];
+
+
 
       print("generateContent content: ${content.first.parts.length}");
       final response = await _model.generateContent(content);
@@ -66,7 +79,7 @@ class GeminiAiServices {
 
       if (functionCalls.isNotEmpty) {
 
-        return SearchResponse("No Tool Found");
+        return SearchResponse(response.text!);
       } else {
 
         final groundingMetadata = response.candidates.first.groundingMetadata;

@@ -48,6 +48,8 @@ class _TextGeneratorScreenState extends State<TextGeneratorScreen> {
   bool _isLoading = false;
   SearchResponse? response;
 
+  List<String> chatHistory = [];
+
   Future<void> _generateText() async {
     if (_textController.text.isEmpty) return;
 
@@ -55,10 +57,13 @@ class _TextGeneratorScreenState extends State<TextGeneratorScreen> {
       _isLoading = true;
     });
 
+    chatHistory.add(_textController.text);
     response = await GeminiAiServices.generateContent(
       "Be a Helpful Assistant",
       _textController.text,
+        chatHistory: chatHistory
     );
+    chatHistory.add(response?.textResponse ?? "");
 
     setState(() {
       _generatedText = response?.textResponse ?? "";
@@ -89,14 +94,23 @@ class _TextGeneratorScreenState extends State<TextGeneratorScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: _isLoading
                       ? const CircularProgressIndicator()
-                      : SingleChildScrollView(
-                          child: Text(
-                            _generatedText,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodyLarge?.copyWith(fontSize: 18),
-                            textAlign: TextAlign.start,
-                          ),
+                      : ListView.builder(
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Container(
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    width: 1,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                child: Text(chatHistory[index]),
+                              ),
+                            );
+                          },
+                          itemCount: chatHistory.length,
                         ),
                 ),
               ),
